@@ -244,8 +244,13 @@ export default function Home() {
       const res = await fetch(`${API_URL}/api/news/fetch-live`, { method: "POST" });
       if (res.ok) {
         const data = await res.json();
-        showToast(data.message || "Fetched live breaking news articles.");
-        fetchData();
+        if (data.articles && data.articles.length > 0) {
+          setNews((prev) => [...data.articles, ...prev]);
+          showToast(`Ingested ${data.articles.length} breaking live RSS articles!`);
+        } else {
+          showToast(data.message || "Fetched live breaking news articles.");
+          fetchData();
+        }
       } else {
         showToast("Live RSS feed queried and merged into news stream.");
       }
