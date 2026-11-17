@@ -11,6 +11,7 @@ import {
   Minus, 
   Tag 
 } from "lucide-react";
+import { TRANSLATIONS, SupportedLanguage, localizeArticle } from "../utils/translations";
 
 export interface ArticleItem {
   id: number;
@@ -41,15 +42,21 @@ interface ArticleCardProps {
   article: ArticleItem;
   onOpenRebuttal: (article: ArticleItem) => void;
   onDispatchAlert: (article: ArticleItem) => void;
+  selectedLanguage?: string;
 }
 
 export default function ArticleCard({
   article,
   onOpenRebuttal,
   onDispatchAlert,
+  selectedLanguage = "English",
 }: ArticleCardProps) {
   const [dispatched, setDispatched] = useState(false);
   const [showFull, setShowFull] = useState(false);
+
+  const lang = (selectedLanguage as SupportedLanguage) || "English";
+  const t = TRANSLATIONS[lang] || TRANSLATIONS.English;
+  const localized = localizeArticle(article, lang);
 
   const rawParts = article.Sentiment_Score ? article.Sentiment_Score.split(" ") : ["0.5", "0.2", "0.3"];
   const posScore = parseFloat(rawParts[0]) || 0;
@@ -68,7 +75,7 @@ export default function ArticleCard({
       return (
         <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[13px] font-extrabold bg-[#FEECEC] text-[#D91022] whitespace-nowrap">
           <ThumbsDown className="w-3.5 h-3.5" />
-          Negative {Math.round(negScore * 100)}%
+          {t.sentNegative} {Math.round(negScore * 100)}%
         </span>
       );
     }
@@ -76,14 +83,14 @@ export default function ArticleCard({
       return (
         <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[13px] font-extrabold bg-[#EFEFEF] text-[#222222] whitespace-nowrap">
           <Minus className="w-3.5 h-3.5" />
-          Neutral {Math.round(neuScore * 100)}%
+          {t.sentNeutral} {Math.round(neuScore * 100)}%
         </span>
       );
     }
     return (
       <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[13px] font-extrabold bg-[#E8F8EE] text-[#008030] whitespace-nowrap">
         <ThumbsUp className="w-3.5 h-3.5" />
-        Positive {Math.round(posScore * 100)}%
+        {t.sentPositive} {Math.round(posScore * 100)}%
       </span>
     );
   };
@@ -103,7 +110,7 @@ export default function ArticleCard({
             </span>
             <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#E8F2FD] text-[#0A59D2] text-[13px] font-bold whitespace-nowrap">
               <Tag className="w-3.5 h-3.5" />
-              {article.Category}
+              {localized.Category}
             </span>
           </div>
 
@@ -111,7 +118,7 @@ export default function ArticleCard({
             {isCritical && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-extrabold bg-[#D91022] text-white whitespace-nowrap">
                 <AlertTriangle className="w-3.5 h-3.5" />
-                Adverse
+                {t.adverseAlert}
               </span>
             )}
             {getSentimentPill()}
@@ -121,24 +128,27 @@ export default function ArticleCard({
         {/* Title */}
         <h3 className="text-[20px] sm:text-[22px] font-extrabold text-[#000000] mb-2.5 leading-snug hover:text-[#0A59D2] transition cursor-pointer">
           <a href={article.URL} target="_blank" rel="noopener noreferrer">
-            {article.Title || article.Heading}
+            {localized.Title || localized.Heading}
           </a>
         </h3>
 
         {/* Domain Topic */}
         <p className="text-[14px] font-bold text-[#333333] mb-3">
-          Sector Domain: <span className="text-[#000000] font-black underline decoration-black/20 underline-offset-4">{article.Ministry || article.Category}</span>
+          {t.filterTopic}{" "}
+          <span className="text-[#000000] font-black underline decoration-black/20 underline-offset-4">
+            {localized.Category}
+          </span>
         </p>
 
         {/* Excerpt */}
         <p className="text-[15px] sm:text-[16px] text-[#222222] leading-relaxed mb-5 font-normal">
-          {showFull ? (article.FullBody || article.Body) : article.Body}
-          {article.Body && article.Body.length > 180 && (
+          {showFull ? (localized.FullBody || localized.Body) : localized.Body}
+          {localized.Body && localized.Body.length > 180 && (
             <button
               onClick={() => setShowFull(!showFull)}
               className="ml-1 text-[#000000] hover:underline text-[14px] font-black inline-block"
             >
-              {showFull ? "Show less" : "Read more"}
+              {showFull ? t.showLess : t.readMore}
             </button>
           )}
         </p>
@@ -152,7 +162,7 @@ export default function ArticleCard({
             <Clock className="w-3.5 h-3.5 text-[#000000]" />
             <span>{article.PublishedAt || "2026-11-15"}</span>
             <span>•</span>
-            <span>{article.ReadTime || "2 min"}</span>
+            <span>{article.ReadTime || `2 ${t.minRead}`}</span>
           </div>
 
           <a
@@ -161,12 +171,12 @@ export default function ArticleCard({
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#F5F3F1] hover:bg-[#EAE7E2] text-[#000000] font-bold text-[13px] border border-black/[0.1] transition whitespace-nowrap"
           >
-            <span>Source</span>
+            <span>{t.source}</span>
             <ExternalLink className="w-3.5 h-3.5 text-[#000000]" />
           </a>
         </div>
 
-        {/* Action Buttons for Critical / Adverse articles: clean 2-column row */}
+        {/* Action Buttons for Critical / Adverse articles */}
         {isCritical && (
           <div className="grid grid-cols-2 gap-2 pt-2 border-t border-black/[0.06]">
             <button
@@ -174,7 +184,7 @@ export default function ArticleCard({
               className="eleven-pill-outline text-[13px] h-9 px-3 font-bold w-full justify-center whitespace-nowrap"
             >
               <FileText className="w-3.5 h-3.5 mr-1 shrink-0" />
-              <span>Draft Rebuttal</span>
+              <span>{t.draftRebuttal}</span>
             </button>
 
             <button
@@ -187,12 +197,12 @@ export default function ArticleCard({
               {dispatched ? (
                 <>
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#000000] mr-1 shrink-0" />
-                  <span>Notified</span>
+                  <span>{t.notified}</span>
                 </>
               ) : (
                 <>
                   <Send className="w-3.5 h-3.5 mr-1 shrink-0" />
-                  <span>Notify Liaison</span>
+                  <span>{t.notifyLiaison}</span>
                 </>
               )}
             </button>

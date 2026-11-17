@@ -1,5 +1,6 @@
 import React from "react";
 import { Newspaper, ThumbsUp, AlertTriangle, Layers, ArrowUpRight } from "lucide-react";
+import { TRANSLATIONS, SupportedLanguage } from "../utils/translations";
 
 interface KPICardsProps {
   totalArticles: number;
@@ -13,6 +14,7 @@ interface KPICardsProps {
   };
   criticalCount: number;
   ministriesCount: number;
+  selectedLanguage?: string;
 }
 
 export default function KPICards({
@@ -20,14 +22,18 @@ export default function KPICards({
   sentimentDistribution,
   criticalCount,
   ministriesCount,
+  selectedLanguage = "English",
 }: KPICardsProps) {
+  const lang = (selectedLanguage as SupportedLanguage) || "English";
+  const t = TRANSLATIONS[lang] || TRANSLATIONS.English;
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       {/* 1. Monitored News */}
       <div className="eleven-card p-7 flex flex-col justify-between min-h-[185px]">
         <div className="flex items-center justify-between mb-3">
           <span className="text-[16px] font-extrabold text-[#000000] tracking-tight">
-            Ingested Stories
+            {t.kpiIngestedTitle}
           </span>
           <div className="w-11 h-11 rounded-2xl bg-[#F0EEEB] flex items-center justify-center text-[#000000] border border-black/[0.08]">
             <Newspaper className="w-5 h-5" />
@@ -39,7 +45,7 @@ export default function KPICards({
           </div>
           <p className="text-[14px] text-[#222222] font-bold flex items-center gap-1.5">
             <ArrowUpRight className="w-4 h-4 text-[#000000]" />
-            <span>Autonomous cross-media crawl</span>
+            <span>{t.kpiIngestedSub}</span>
           </p>
         </div>
       </div>
@@ -48,7 +54,7 @@ export default function KPICards({
       <div className="eleven-card p-7 flex flex-col justify-between min-h-[185px]">
         <div className="flex items-center justify-between mb-3">
           <span className="text-[16px] font-extrabold text-[#000000] tracking-tight">
-            Positive Sentiment
+            {t.kpiPositiveTitle}
           </span>
           <div className="w-11 h-11 rounded-2xl bg-[#E8F8EE] flex items-center justify-center text-[#008030] border border-green-200">
             <ThumbsUp className="w-5 h-5" />
@@ -59,7 +65,7 @@ export default function KPICards({
             {sentimentDistribution.positive_pct}%
           </div>
           <p className="text-[14px] text-[#222222] font-semibold">
-            <strong className="text-[#000000] font-black">{sentimentDistribution.positive}</strong> favorable stories
+            <strong className="text-[#000000] font-black">{sentimentDistribution.positive}</strong> {t.kpiPositiveSub}
           </p>
         </div>
       </div>
@@ -68,7 +74,7 @@ export default function KPICards({
       <div className="eleven-card p-7 flex flex-col justify-between min-h-[185px]">
         <div className="flex items-center justify-between mb-3">
           <span className="text-[16px] font-extrabold text-[#000000] tracking-tight">
-            Adverse Incidents
+            {t.kpiAdverseTitle}
           </span>
           <div className="w-11 h-11 rounded-2xl bg-[#FEECEC] flex items-center justify-center text-[#D91022] border border-red-200">
             <AlertTriangle className="w-5 h-5" />
@@ -79,12 +85,12 @@ export default function KPICards({
             {criticalCount}
             {criticalCount > 0 && (
               <span className="px-3 py-1 rounded-full text-[13px] font-black bg-[#D91022] text-white">
-                Urgent
+                {t.kpiAdverseUrgent}
               </span>
             )}
           </div>
           <p className="text-[14px] text-[#222222] font-bold">
-            Negative score ≥ 0.50
+            {t.kpiAdverseSub}
           </p>
         </div>
       </div>
@@ -93,7 +99,7 @@ export default function KPICards({
       <div className="eleven-card p-7 flex flex-col justify-between min-h-[185px]">
         <div className="flex items-center justify-between mb-3">
           <span className="text-[16px] font-extrabold text-[#000000] tracking-tight">
-            Monitored Sectors
+            {t.kpiSectorsTitle}
           </span>
           <div className="w-11 h-11 rounded-2xl bg-[#F0EEEB] flex items-center justify-center text-[#000000] border border-black/[0.08]">
             <Layers className="w-5 h-5" />
@@ -104,7 +110,7 @@ export default function KPICards({
             {ministriesCount}
           </div>
           <p className="text-[14px] text-[#222222] font-semibold">
-            Automated topic taxonomy
+            {t.kpiSectorsSub}
           </p>
         </div>
       </div>

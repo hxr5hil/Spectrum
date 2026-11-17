@@ -1,18 +1,29 @@
 import React, { useState, useEffect } from "react";
 import { X, Copy, Check, Send, Sparkles, Tag } from "lucide-react";
 import { ArticleItem } from "./ArticleCard";
+import { TRANSLATIONS, SupportedLanguage, localizeArticle } from "../utils/translations";
 
 interface RebuttalModalProps {
   article: ArticleItem | null;
   onClose: () => void;
   apiUrl: string;
+  selectedLanguage?: string;
 }
 
-export default function RebuttalModal({ article, onClose, apiUrl }: RebuttalModalProps) {
+export default function RebuttalModal({
+  article,
+  onClose,
+  apiUrl,
+  selectedLanguage = "English",
+}: RebuttalModalProps) {
   const [rebuttalText, setRebuttalText] = useState("");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [dispatched, setDispatched] = useState(false);
+
+  const lang = (selectedLanguage as SupportedLanguage) || "English";
+  const t = TRANSLATIONS[lang] || TRANSLATIONS.English;
+  const localized = article ? localizeArticle(article, lang) : null;
 
   useEffect(() => {
     if (!article) return;
@@ -44,7 +55,7 @@ export default function RebuttalModal({ article, onClose, apiUrl }: RebuttalModa
       });
   }, [article, apiUrl]);
 
-  if (!article) return null;
+  if (!article || !localized) return null;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(rebuttalText);
@@ -76,11 +87,11 @@ export default function RebuttalModal({ article, onClose, apiUrl }: RebuttalModa
             </div>
             <div>
               <h3 className="eleven-headline text-[24px] text-[#000000]">
-                AI Media Clarification Drafter
+                {t.rebuttalTitle}
               </h3>
               <p className="text-[15px] text-[#333333] font-bold flex items-center gap-1.5 mt-0.5">
                 <Tag className="w-4 h-4 text-[#000000]" />
-                {article.Ministry || article.Category}
+                {localized.Category}
               </p>
             </div>
           </div>
@@ -94,8 +105,8 @@ export default function RebuttalModal({ article, onClose, apiUrl }: RebuttalModa
 
         {/* Target Headline */}
         <div className="px-8 py-4 bg-[#F5F3F1] border-b border-black/[0.08] text-[16px]">
-          <span className="text-[#444444] font-semibold">Target Story: </span>
-          <span className="font-extrabold text-[#000000]">{article.Title || article.Heading}</span>
+          <span className="text-[#444444] font-semibold">{t.rebuttalSubtitle}: </span>
+          <span className="font-extrabold text-[#000000]">{localized.Title || localized.Heading}</span>
         </div>
 
         {/* Body / Textarea */}
@@ -129,12 +140,12 @@ export default function RebuttalModal({ article, onClose, apiUrl }: RebuttalModa
               {copied ? (
                 <>
                   <Check className="w-4 h-4 mr-2 text-[#008030]" />
-                  <span>Copied to Clipboard</span>
+                  <span>{t.copied}</span>
                 </>
               ) : (
                 <>
                   <Copy className="w-4 h-4 mr-2" />
-                  <span>Copy Statement</span>
+                  <span>{t.copyStatement}</span>
                 </>
               )}
             </button>
@@ -149,12 +160,12 @@ export default function RebuttalModal({ article, onClose, apiUrl }: RebuttalModa
               {dispatched ? (
                 <>
                   <Check className="w-4 h-4 mr-2" />
-                  <span>Dispatched to Liaison</span>
+                  <span>{t.notified}</span>
                 </>
               ) : (
                 <>
                   <Send className="w-4 h-4 mr-2" />
-                  <span>Dispatch Formal Clarification</span>
+                  <span>{t.dispatchPressDesk}</span>
                 </>
               )}
             </button>

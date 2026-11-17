@@ -1,19 +1,27 @@
 # Dependencies
 node_modules/
-frontend/node_modules/
-backend/__pycache__/
 __pycache__/
 *.pyc
+*.pyo
 .venv/
 venv/
 env/
 
 # Next.js build
 .next/
-frontend/.next/
 out/
 build/
 .vercel/
+
+# Model training data (too large for Git)
+models/Datasets/
+models/sentiment_analysis/news_data_with_sentiment_output_file.csv
+*.npy
+
+# Python artifacts
+*.egg-info/
+dist/
+*.whl
 
 # Logs
 *.log
@@ -26,3 +34,5 @@ yarn-error.log*
 Thumbs.db
 .vscode/
 .idea/
+*.swp
+*.swo

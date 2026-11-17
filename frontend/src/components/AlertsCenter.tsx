@@ -1,15 +1,24 @@
 import React, { useState } from "react";
 import { Send, CheckCircle2, ShieldAlert, Mail, Tag, ExternalLink } from "lucide-react";
 import { ArticleItem } from "./ArticleCard";
+import { TRANSLATIONS, SupportedLanguage, localizeArticle } from "../utils/translations";
 
 interface AlertsCenterProps {
   alerts: ArticleItem[];
   apiUrl: string;
   onOpenRebuttal: (article: ArticleItem) => void;
+  selectedLanguage?: string;
 }
 
-export default function AlertsCenter({ alerts, apiUrl, onOpenRebuttal }: AlertsCenterProps) {
+export default function AlertsCenter({
+  alerts,
+  apiUrl,
+  onOpenRebuttal,
+  selectedLanguage = "English",
+}: AlertsCenterProps) {
   const [dispatchedMap, setDispatchedMap] = useState<Record<number, boolean>>({});
+  const lang = (selectedLanguage as SupportedLanguage) || "English";
+  const t = TRANSLATIONS[lang] || TRANSLATIONS.English;
 
   const handleDispatch = (article: ArticleItem) => {
     setDispatchedMap((prev) => ({ ...prev, [article.id]: true }));
@@ -35,14 +44,14 @@ export default function AlertsCenter({ alerts, apiUrl, onOpenRebuttal }: AlertsC
           <div>
             <div className="flex flex-wrap items-center gap-3">
               <h2 className="eleven-headline text-[32px] text-[#000000] tracking-tight">
-                Incident Escalation Hub
+                {t.alertsHubTitle}
               </h2>
               <span className="px-4 py-1 rounded-full text-[15px] bg-[#D91022] text-white font-extrabold shadow-sm">
-                {alerts.length} Urgent Incidents
+                {alerts.length} {t.urgentIncidents}
               </span>
             </div>
             <p className="text-[18px] text-[#333333] font-semibold mt-2 max-w-4xl">
-              Automated trigger for negative news with adversity score ≥ 0.50. Direct escalation to assigned sector leads.
+              {t.alertsHubSubtitle}
             </p>
           </div>
         </div>
@@ -54,19 +63,20 @@ export default function AlertsCenter({ alerts, apiUrl, onOpenRebuttal }: AlertsC
           className="eleven-pill-btn min-h-[52px] px-8 text-[17px] font-bold shrink-0 self-start md:self-auto shadow-md"
         >
           <Send className="w-5 h-5 mr-2" />
-          <span>Dispatch All Pending</span>
+          <span>{t.dispatchAllPending}</span>
         </button>
       </div>
 
       {/* Escalation Incidents List */}
       <div className="eleven-card overflow-hidden">
         <div className="px-8 py-5 border-b border-black/[0.1] text-[16px] font-extrabold text-[#000000] uppercase tracking-wider flex items-center justify-between bg-[#F5F3F1]">
-          <span>Adverse Coverage & Incident Dossier</span>
+          <span>{t.alertsHubTitle} Dossier</span>
           <span className="hidden md:inline">Assigned Lead & Action</span>
         </div>
 
         <div className="divide-y divide-black/[0.1]">
           {alerts.map((article) => {
+            const localized = localizeArticle(article, lang);
             const rawParts = article.Sentiment_Score ? article.Sentiment_Score.split(" ") : ["0", "0.8", "0.2"];
             const negScore = parseFloat(rawParts[1]) || 0.8;
             const isSent = dispatchedMap[article.id];
@@ -80,11 +90,11 @@ export default function AlertsCenter({ alerts, apiUrl, onOpenRebuttal }: AlertsC
                 <div className="flex-1 space-y-3">
                   <div className="flex flex-wrap items-center gap-3">
                     <span className="px-4 py-1.5 rounded-full bg-[#FEECEC] text-[#D91022] text-[15px] font-black border border-red-300">
-                      Adverse: {Math.round(negScore * 100)}%
+                      {t.sentNegative}: {Math.round(negScore * 100)}%
                     </span>
                     <span className="px-4 py-1.5 rounded-full bg-[#EFEFEF] text-[#000000] text-[15px] font-bold border border-black/[0.1] flex items-center gap-1.5">
                       <Tag className="w-4 h-4 text-[#000000]" />
-                      {article.Category}
+                      {localized.Category}
                     </span>
                     <span className="text-[#333333] text-[16px] font-bold">{article.Source}</span>
                   </div>
@@ -96,13 +106,13 @@ export default function AlertsCenter({ alerts, apiUrl, onOpenRebuttal }: AlertsC
                       rel="noopener noreferrer"
                       className="hover:underline flex items-center gap-2 group"
                     >
-                      <span>{article.Title || article.Heading}</span>
+                      <span>{localized.Title || localized.Heading}</span>
                       <ExternalLink className="w-5 h-5 opacity-40 group-hover:opacity-100 transition inline-block shrink-0" />
                     </a>
                   </h4>
 
                   <p className="text-[17px] text-[#222222] font-medium leading-relaxed max-w-4xl">
-                    {article.Body}
+                    {localized.Body}
                   </p>
                 </div>
 
@@ -113,7 +123,7 @@ export default function AlertsCenter({ alerts, apiUrl, onOpenRebuttal }: AlertsC
                       <Mail className="w-4 h-4 text-[#000000]" />
                       {article.NodalOfficer}
                     </p>
-                    <p className="text-[15px] text-[#444444] font-semibold mt-0.5">Sector: {article.Category}</p>
+                    <p className="text-[15px] text-[#444444] font-semibold mt-0.5">{t.filterTopic} {localized.Category}</p>
                   </div>
 
                   <div className="flex items-center space-x-3 w-full sm:w-auto">
@@ -121,7 +131,7 @@ export default function AlertsCenter({ alerts, apiUrl, onOpenRebuttal }: AlertsC
                       onClick={() => onOpenRebuttal(article)}
                       className="eleven-pill-outline min-h-[48px] px-6 text-[15px] font-bold flex-1 sm:flex-initial"
                     >
-                      Draft Rebuttal
+                      {t.draftRebuttal}
                     </button>
 
                     <button
@@ -134,12 +144,12 @@ export default function AlertsCenter({ alerts, apiUrl, onOpenRebuttal }: AlertsC
                       {isSent ? (
                         <>
                           <CheckCircle2 className="w-4 h-4 text-[#000000] mr-2" />
-                          <span>Notified</span>
+                          <span>{t.notified}</span>
                         </>
                       ) : (
                         <>
                           <Send className="w-4 h-4 mr-2" />
-                          <span>Notify</span>
+                          <span>{t.notifyLiaison}</span>
                         </>
                       )}
                     </button>

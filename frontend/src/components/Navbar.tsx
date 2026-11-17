@@ -9,6 +9,7 @@ import {
   Languages
 } from "lucide-react";
 import SpectrumLogo from "./SpectrumLogo";
+import { TRANSLATIONS, SupportedLanguage } from "../utils/translations";
 
 interface NavbarProps {
   activeTab: string;
@@ -30,6 +31,8 @@ export default function Navbar({
   criticalCount,
 }: NavbarProps) {
   const [countdown, setCountdown] = useState(60);
+  const lang = (selectedLanguage as SupportedLanguage) || "English";
+  const t = TRANSLATIONS[lang] || TRANSLATIONS.English;
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -39,19 +42,26 @@ export default function Navbar({
   }, []);
 
   const navItems = [
-    { id: "feed", label: "News Feed", icon: Newspaper },
-    { id: "analytics", label: "Analytics", icon: BarChart3 },
+    { id: "feed", label: t.tabNewsFeed, icon: Newspaper },
+    { id: "analytics", label: t.tabAnalytics, icon: BarChart3 },
     { 
       id: "alerts", 
-      label: "Alerts Hub", 
+      label: t.tabAlertsHub, 
       icon: ShieldAlert,
       badge: criticalCount > 0 ? criticalCount : undefined 
     },
-    { id: "video", label: "Video Studio", icon: Video },
-    { id: "tester", label: "AI Playground", icon: Sparkles },
+    { id: "video", label: t.tabVideoStudio, icon: Video },
+    { id: "tester", label: t.tabAiPlayground, icon: Sparkles },
   ];
 
-  const languages = ["English", "Hindi", "Punjabi", "Bengali", "Tamil", "Telugu"];
+  const languages = [
+    { label: "English", value: "English" },
+    { label: "हिन्दी (Hindi)", value: "Hindi" },
+    { label: "ਪੰਜਾਬੀ (Punjabi)", value: "Punjabi" },
+    { label: "বাংলা (Bengali)", value: "Bengali" },
+    { label: "தமிழ் (Tamil)", value: "Tamil" },
+    { label: "తెలుగు (Telugu)", value: "Telugu" },
+  ];
 
   return (
     <header className="sticky top-0 z-50 bg-[#F5F3F1]/98 backdrop-blur-xl border-b border-black/[0.1] transition-all">
@@ -60,18 +70,18 @@ export default function Navbar({
         <div className="flex items-center space-x-3">
           <span className="w-2.5 h-2.5 rounded-full bg-[#000000]"></span>
           <span className="font-extrabold text-[#000000]">
-            Autonomous Media Monitoring & Natural Language Sentiment Platform
+            {t.topBanner}
           </span>
           <span className="hidden md:inline-block text-[#888888]">•</span>
           <span className="hidden md:inline-block text-[#333333] font-semibold">
-            Live Cross-Media Stream
+            {t.liveStream}
           </span>
         </div>
 
         <div className="flex items-center space-x-3 sm:space-x-4">
           <div className="flex items-center space-x-1.5 text-[#222222] font-semibold text-[13px]">
             <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-[#000000]" : "text-[#444444]"}`} />
-            <span>Sync in <strong className="text-[#000000] font-bold">{countdown}s</strong></span>
+            <span>{t.syncIn} <strong className="text-[#000000] font-bold">{countdown}s</strong></span>
           </div>
 
           <button
@@ -79,7 +89,7 @@ export default function Navbar({
             disabled={refreshing}
             className="px-3.5 py-1 rounded-full bg-white hover:bg-[#EFEFEF] text-[#000000] transition text-[13px] font-bold border border-black/[0.12] shadow-sm"
           >
-            <span>{refreshing ? "Syncing..." : "Sync"}</span>
+            <span>{refreshing ? t.syncing : t.sync}</span>
           </button>
 
           <div className="flex items-center space-x-1.5 bg-white px-3 py-1 rounded-full border border-black/[0.12] shadow-sm">
@@ -90,9 +100,9 @@ export default function Navbar({
               aria-label="Select language"
               className="bg-transparent text-[#000000] text-[13px] font-bold outline-none cursor-pointer"
             >
-              {languages.map((lang) => (
-                <option key={lang} value={lang} className="bg-white text-[#000000] font-semibold">
-                  {lang}
+              {languages.map((l) => (
+                <option key={l.value} value={l.value} className="bg-white text-[#000000] font-semibold">
+                  {l.label}
                 </option>
               ))}
             </select>
@@ -117,7 +127,7 @@ export default function Navbar({
               </span>
             </div>
             <p className="text-[14px] text-[#333333] font-semibold">
-              Digital Media & Sentiment Intelligence Engine
+              {t.brandSubtitle}
             </p>
           </div>
         </div>

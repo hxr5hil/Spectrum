@@ -17,6 +17,12 @@ import {
   FileDown,
   Radio
 } from "lucide-react";
+import { 
+  TRANSLATIONS, 
+  SupportedLanguage, 
+  getLocalizedCategory, 
+  getLocalizedSentiment 
+} from "../utils/translations";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -79,24 +85,24 @@ const INITIAL_NEWS: ArticleItem[] = [
     Category: "Business",
     Ministry: "Finance & Industry",
     MinistryCode: "FIN",
-    NodalOfficer: "industry.desk@spectrum.ai",
-    URL: "https://www.indiatoday.in/business",
+    NodalOfficer: "finance.desk@spectrum.ai",
+    URL: "https://indianexpress.com/business",
     Sentiment: "positive",
-    Sentiment_Score: "0.91 0.04 0.05",
+    Sentiment_Score: "0.91 0.03 0.06",
     Severity: "Normal",
-    Source: "India Today",
+    Source: "Indian Express",
     Language: "English",
     PublishedAt: "2026-11-14",
     ReadTime: "2 min read"
   },
   {
     id: 4,
-    Title: "Healthcare Logistics Audit: Regional Supply Gaps & Medicine Stockouts Flagged",
-    Body: "Field monitoring monitors have submitted assessments documenting periodic shortages of essential antibiotics in rural clinics. Immediate procurement interventions have been formally requested from the health board.",
-    Category: "Politics",
-    Ministry: "Public Health & Welfare",
-    MinistryCode: "HEALTH",
-    NodalOfficer: "health.liaison@spectrum.ai",
+    Title: "Power Grid Reliability Study Warns of Summer Peak Shortfalls Across Northern States",
+    Body: "Regional transmission reports advise that delayed commissioning of pumped hydro storage units could strain baseline frequency controls during peak ambient temperatures.",
+    Category: "Technology",
+    Ministry: "Power & Renewable Resources",
+    MinistryCode: "POWER",
+    NodalOfficer: "infrastructure.ops@spectrum.ai",
     URL: "https://indianexpress.com",
     Sentiment: "negative",
     Sentiment_Score: "0.15 0.74 0.11",
@@ -167,11 +173,11 @@ export default function Home() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(3000);
 
-  // Filters
+  // Filters & Localization
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedSentiment, setSelectedSentiment] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedLanguage, setSelectedLanguage] = useState("English");
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("English");
 
   // Rebuttal Modal State
   const [rebuttalArticle, setRebuttalArticle] = useState<ArticleItem | null>(null);
@@ -179,9 +185,18 @@ export default function Home() {
   // Toast Notification
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  const lang = (selectedLanguage as SupportedLanguage) || "English";
+  const t = TRANSLATIONS[lang] || TRANSLATIONS.English;
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const handleLanguageChange = (newLang: string) => {
+    setSelectedLanguage(newLang);
+    const targetT = TRANSLATIONS[newLang as SupportedLanguage] || TRANSLATIONS.English;
+    showToast(targetT.langSwitchedToast);
   };
 
   const fetchData = useCallback(async () => {
@@ -272,7 +287,7 @@ export default function Home() {
       }),
     })
       .then(() => {
-        showToast(`Escalation alert dispatched to ${article.NodalOfficer}`);
+        showToast(`${t.alertDispatchedToast} ${article.NodalOfficer}`);
       })
       .catch(() => {
         showToast(`Alert recorded for ${article.NodalOfficer}`);
@@ -283,6 +298,7 @@ export default function Home() {
     const briefData = {
       generatedAt: new Date().toISOString(),
       system: "Spectrum Intelligence System",
+      language: selectedLanguage,
       metrics: metrics,
       topCriticalAlerts: alerts.slice(0, 5),
     };
@@ -292,7 +308,7 @@ export default function Home() {
     a.href = url;
     a.download = `Spectrum_Intelligence_Brief_${new Date().toISOString().split("T")[0]}.json`;
     a.click();
-    showToast("Executive Briefing downloaded successfully");
+    showToast(t.briefDownloadedToast);
   };
 
   return (
@@ -313,7 +329,7 @@ export default function Home() {
         onRefresh={fetchData}
         refreshing={refreshing}
         selectedLanguage={selectedLanguage}
-        setSelectedLanguage={setSelectedLanguage}
+        setSelectedLanguage={handleLanguageChange}
         criticalCount={alerts.length}
       />
 
@@ -335,21 +351,22 @@ export default function Home() {
             }
             criticalCount={metrics.critical_alerts_count || alerts.length}
             ministriesCount={metrics.ministries_monitored || 10}
+            selectedLanguage={selectedLanguage}
           />
         )}
 
         {/* Tab 1: Live News Feed */}
         {activeTab === "feed" && (
           <div className="space-y-8">
-            {/* Filter & Search Bar - High Contrast, Spacious, No Overlap */}
+            {/* Filter & Search Bar */}
             <div className="eleven-card p-8 sm:p-10 space-y-7">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
-                {/* Search Box - Guaranteed 68px left padding so icon NEVER overlaps text */}
+                {/* Search Box */}
                 <div className="relative flex-1 w-full">
                   <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-[#000000] pointer-events-none" />
                   <input
                     type="text"
-                    placeholder="Search stories, sectors, topics, or keywords..."
+                    placeholder={t.searchPlaceholder}
                     value={searchQuery}
                     onChange={(e) => {
                       setSearchQuery(e.target.value);
@@ -368,7 +385,7 @@ export default function Home() {
                     className="eleven-pill-outline h-14 px-6 text-[15px] font-bold"
                   >
                     <Radio className={`w-4 h-4 mr-2 ${fetchingLive ? "animate-pulse" : ""}`} />
-                    <span>{fetchingLive ? "Pulling Feeds..." : "Pull Live RSS News"}</span>
+                    <span>{fetchingLive ? t.pullingLiveRss : t.pullLiveRss}</span>
                   </button>
 
                   <button
@@ -376,16 +393,19 @@ export default function Home() {
                     className="eleven-pill-btn h-14 px-7 text-[15px] font-bold"
                   >
                     <FileDown className="w-4 h-4 mr-2" />
-                    <span>Export Brief</span>
+                    <span>{t.exportBrief}</span>
                   </button>
                 </div>
               </div>
 
-              {/* Category Topic Area - Spacious, Not Congested, Clean "All" Button */}
+              {/* Category Topic Area */}
               <div className="flex flex-wrap items-center gap-3 pt-1">
-                <span className="text-[#000000] font-extrabold text-[16px] mr-2">Topic:</span>
+                <span className="text-[#000000] font-extrabold text-[16px] mr-2">
+                  {t.filterTopic}
+                </span>
                 {CATEGORIES.map((cat) => {
                   const isSelected = selectedCategory === cat;
+                  const localizedCatName = getLocalizedCategory(cat, lang);
                   return (
                     <button
                       key={cat}
@@ -400,7 +420,7 @@ export default function Home() {
                           : "bg-[#EFEFEF] text-[#111111] hover:bg-[#E0DCD6] hover:text-[#000000] border border-black/[0.08]"
                       }`}
                     >
-                      {cat}
+                      {localizedCatName}
                     </button>
                   );
                 })}
@@ -408,9 +428,12 @@ export default function Home() {
 
               {/* Sentiment Filter Pills */}
               <div className="flex flex-wrap items-center gap-3 pt-5 border-t border-black/[0.1]">
-                <span className="text-[#000000] font-extrabold text-[16px] mr-2">Polarity:</span>
+                <span className="text-[#000000] font-extrabold text-[16px] mr-2">
+                  {t.filterPolarity}
+                </span>
                 {SENTIMENTS.map((s) => {
                   const isSelected = selectedSentiment === s;
+                  const localizedSentName = getLocalizedSentiment(s, lang);
                   return (
                     <button
                       key={s}
@@ -429,24 +452,23 @@ export default function Home() {
                           : "bg-[#EFEFEF] text-[#222222] hover:text-[#000000] hover:bg-[#E0DCD6] border border-black/[0.08]"
                       }`}
                     >
-                      {s}
+                      {localizedSentName}
                     </button>
                   );
                 })}
                 <span className="text-[#111111] ml-auto text-[15px] font-bold">
-                  Showing {news.length} indexed stories
+                  {t.showingStories.replace("{count}", news.length.toString())}
                 </span>
               </div>
             </div>
 
-            {/* News Cards Grid - Spacious 2 to 3 Column Layout for Maximum Legibility */}
+            {/* News Cards Grid */}
             {loading ? (
               <div className="text-center py-24 text-[#111111] text-xl font-bold">Refreshing stream...</div>
             ) : news.length === 0 ? (
               <div className="eleven-card p-20 text-center text-[#222222]">
                 <AlertCircle className="w-12 h-12 mx-auto text-[#000000] mb-4" />
-                <p className="text-2xl font-bold text-[#000000]">No articles matched active filters.</p>
-                <p className="text-lg text-[#333333] mt-2 font-medium">Try resetting the topic filter or search query.</p>
+                <p className="text-2xl font-bold text-[#000000]">{t.noArticlesFound}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
@@ -456,6 +478,7 @@ export default function Home() {
                     article={item}
                     onOpenRebuttal={(a) => setRebuttalArticle(a)}
                     onDispatchAlert={handleDispatchAlert}
+                    selectedLanguage={selectedLanguage}
                   />
                 ))}
               </div>
@@ -465,7 +488,9 @@ export default function Home() {
             {totalPages > 1 && (
               <div className="flex items-center justify-between eleven-card p-6">
                 <span className="text-[#111111] text-[16px] font-bold">
-                  Page <strong className="text-[#000000] text-[18px]">{page}</strong> of <strong className="text-[#000000] text-[18px]">{totalPages}</strong>
+                  {t.pageOf
+                    .replace("{page}", page.toString())
+                    .replace("{total}", totalPages.toString())}
                 </span>
 
                 <div className="flex items-center space-x-3.5">
@@ -498,6 +523,7 @@ export default function Home() {
             alerts={alerts}
             apiUrl={API_URL}
             onOpenRebuttal={(a) => setRebuttalArticle(a)}
+            selectedLanguage={selectedLanguage}
           />
         )}
 
@@ -513,6 +539,7 @@ export default function Home() {
         article={rebuttalArticle}
         onClose={() => setRebuttalArticle(null)}
         apiUrl={API_URL}
+        selectedLanguage={selectedLanguage}
       />
 
       {/* Subtle Floating Toast Notification */}
@@ -526,10 +553,10 @@ export default function Home() {
       {/* Clean Bold Wide Footer */}
       <footer className="border-t border-black/[0.08] bg-[#F5F3F1] py-12 text-center">
         <p className="max-w-3xl mx-auto px-4 font-bold text-[#111111] text-[16px]">
-          Spectrum • Autonomous Digital Media & Sentiment Intelligence Engine
+          {t.footerTitle}
         </p>
         <p className="mt-1.5 text-[14px] text-[#444444] font-semibold">
-          Real-time cross-media automated crawling, sentiment classification and feedback platform
+          {t.footerSubtitle}
         </p>
       </footer>
     </div>
